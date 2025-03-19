@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Moja Aplikacja PWA - interaktywna aplikacja do nauki matematyki. Sprawdź formularze dzielenia, tabliczki mnożenia, znaków i równań kwadratowych.">
+    <title>Moja Aplikacja PWA</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon.jpg" type="image/jpeg">
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <header>
+        <h1>Witamy w naszej aplikacji</h1>
+        <a href="login.html">Zaloguj się</a>
+        <a href="login.html">Zarejestruj się</a>
+    </header>
+
+
+    <div class="Obrazki-slide">
+        <img class="mySlides" src="didd.jpg" style="width:100%">
+        <img class="mySlides" src="did.jpg" style="width:100%">
+        <img class="mySlides" src="diddy.jpg" style="width:100%">
+    </div>
+    
+    <script>
+        var myIndex = 0;
+        carousel();
+    
+        function carousel() {
+            var i;
+            var x = document.getElementsByClassName("mySlides");
+            
+            // Hide all images
+            for (i = 0; i < x.length; i++) {
+                x[i].style.display = "none";
+                x[i].classList.remove("slide-in-right");
+            }
+            
+            myIndex++;
+            if (myIndex > x.length) {myIndex = 1} // Reset to the first image if it exceeds the number of images
+    
+            // Show the current image with the slide-in-right animation
+            x[myIndex - 1].style.display = "block";
+            x[myIndex - 1].classList.add("slide-in-right");
+            
+            setTimeout(carousel, 2500); // Change image every 2.5 seconds
+        }
+    </script>
+    
+
+
+    <main>
+        
+
+        <section>
+            <p>"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."</p>
+        </section>
+
+        <h2>Podstrony aplikacji</h2>
+        <div class="w-layout-grid key-features-grid">
+        <div id="w-node-ec48f2f2-1988-e4d5-aeeb-27c9886d8c33-ec18f745" class="key-features-card">
+            <div class="key-f-image-wrap">‍<br>‍</div>
+            <div class="card-heading-wrap">
+              <h3 class="heading-3">Instant Insights at Your Fingertips</h3>
+              <p class="paragraph-regular left">
+                Get the latest product-level and summary insights with just
+                a tap!
+              </p>
+            </div>
+            <a href="https://getcollectr.com/#" class="button blue-outline hide w-button">Learn More</a>
+          </div>
+        </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>© 2025 Moja Aplikacja PWA</p>
+    </footer>
+
+<meta name="description" content="Moja Aplikacja PWA - interaktywna aplikacja do nauki matematyki. Sprawdź formularze dzielenia, tabliczki mnożenia, znaków i równań kwadratowych.">
+
+</body>
+</html>
