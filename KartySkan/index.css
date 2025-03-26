@@ -6,74 +6,118 @@
     font-family: 'Arial', sans-serif;
 }
 
+/* Globalne style */
 body {
-    background: linear-gradient(135deg, #e1c160, #8b312e);
-    color: white;
+    background: linear-gradient(135deg, #2c3e50, #34495e); /* Granatowy i ciemnoniebieski */
+    color: #ecf0f1; /* Jasnoszary tekst dla lepszej czytelności */
+    font-size: 16px;
+    line-height: 1.6;
     text-align: center;
     animation: fadeIn 1.5s ease-in-out;
     overflow-x: hidden;
 }
 
+/* Nagłówek */
 header {
-    width:100%;
-    float:left;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 20px;
+    width: 100%;
+    background: #2c3e50; /* Granatowe tło */
+    padding: 20px 5%;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
     animation: slideDown 1s ease-in-out;
- 
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    width: 100%;
 }
 
-header > h1 {
-    float:left;
-    font-size: 2.5em;
+/* Logo/nagłówek */
+header h1 {
+    font-size: 1.8em;
     text-transform: uppercase;
+    color: #ecf0f1; /* Jasnoszary tekst */
     letter-spacing: 2px;
+    margin-right: 20px;
+    font-weight: bold;
 }
-header > a {
-    float:right;
-    color:white;
+
+/* Linki logowania/rejestracji */
+header a, header button {
+    background: #2980b9; /* Niebieskie przyciski */
+    color: #ecf0f1; /* Jasnoszary tekst */
     text-decoration: none;
-
-}
-img {
-    margin-top: 20px;
-    border-radius: 10px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-    transition: transform 0.5s;
-}
-
-img:hover {
-    transform: scale(1.05);
+    padding: 10px 20px;
+    border-radius: 5px;
+    transition: background 0.3s ease-in-out;
+    font-weight: bold;
+    margin-left: 10px;
+    border: none;
+    cursor: pointer;
 }
 
+header a:hover, header button:hover {
+    background: #3498db; /* Jaśniejszy odcień niebieskiego */
+}
+
+/* Główna zawartość */
 main {
-    padding: 40px 20px;
+    padding: 80px 5% 40px; /* Dodanie górnej przestrzeni, aby treść nie nachodziła na navbar */
     animation: fadeIn 2s ease-in-out;
+    margin-top: 80px; /* Dodatkowa przestrzeń na górze, aby nagłówek nie nachodził */
 }
 
+/* Sekcja */
 section p {
-    font-size: 1.2em;
-    max-width: 800px;
-    margin: 0 auto;
-    background: rgba(255, 255, 255, 0.1);
+    font-size: 1.1em;
+    max-width: 900px;
+    margin: 20px auto;
+    background: rgba(255, 255, 255, 0.1); /* Lekka przezroczystość białego tła */
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
+/* Nagłówki */
 h2 {
-    margin-top: 30px;
+    margin-top: 40px;
     font-size: 2em;
     text-transform: uppercase;
     letter-spacing: 1px;
+    color: #2980b9; /* Niebieskie nagłówki */
 }
 
+/* Galeria */
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.gallery img {
+    width: 100%;
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.gallery img:hover {
+    transform: scale(1.05);
+}
+
+/* Stopka */
 footer {
-    background: rgba(0, 0, 0, 0.7);
-    padding: 15px;
+    background: #2c3e50; /* Granatowe tło */
+    padding: 20px;
+    color: #ecf0f1; /* Jasnoszary tekst */
+    font-size: 1.1em;
     margin-top: 40px;
-    font-size: 1.2em;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
     animation: slideUp 1s ease-in-out;
 }
 
@@ -108,50 +152,74 @@ footer {
         opacity: 1;
     }
 }
-.key-features-card {
-    grid-column-gap: 24px;
-    grid-row-gap: 24px;
-    background-color: var(--white);
-    border-radius: 10px;
-    flex-flow: column;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: 20px;
-    transition: all 0.2s;
+
+/* Dostosowanie dla urządzeń mobilnych */
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px;
+    }
+
+    header h1 {
+        margin-bottom: 10px;
+    }
+
+    header a, header button {
+        margin: 10px;
+    }
+
+    main {
+        padding: 20px 5%;
+    }
+
+    .gallery {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+
+    .gallery img {
+        box-shadow: none;
+    }
+}
+
+/* Style dla formularzy i kart */
+.card-container {
     display: flex;
-    box-shadow: 3px 4px 4px #0003;
-    background-color: grey;
-  }
-  
-  .key-features-card:hover {
-    box-shadow: 8px 10px 0 0 var(--yellow);
-  } 
-  .w-layout-grid {
-    grid-row-gap: 16px;
-    grid-column-gap: 16px;
-    grid-template-rows: auto auto;
-    grid-template-columns: 1fr 1fr;
-    grid-auto-columns: 1fr;
-    display: grid;
-  }
-  .key-features-grid {
-    grid-column-gap: 20px;
-    grid-row-gap: 20px;
-    grid-template-rows: auto;
-    grid-template-columns: 1fr 1fr 1fr;
-  }
-  .key-features-grid {
-    grid-template-columns: 1fr;
-  }
-  .key-f-image-wrap {
-    background-image: url("../images/insights-s.png");
-    background-position: 50%;
-    background-repeat: no-repeat;
-    background-size: cover;
-    border-radius: 8px;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px auto;
+    max-width: 300px;
+    background: rgba(255, 255, 255, 0.1); /* Subtelne tło */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-container img {
     width: 100%;
-    height: 300px;
-  }
-  .key-f-image-wrap {
-    height: 280px;
-  }
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.card-container input {
+    margin: 10px 0;
+    padding: 10px;
+    width: 100%;
+    border: 1px solid #34495e; /* Ciemniejszy niebieski obrzeże */
+    border-radius: 5px;
+    text-align: center;
+}
+
+.card-container button {
+    padding: 12px;
+    background: #2980b9; /* Niebieski przycisk */
+    color: #ecf0f1; /* Jasnoszary tekst */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.card-container button:hover {
+    background: #3498db; /* Jaśniejszy niebieski przycisk */
+}

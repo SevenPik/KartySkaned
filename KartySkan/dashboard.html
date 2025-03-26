@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moja Kolekcja Kart</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <header>
+        <h1>Twoja Kolekcja Kart</h1>
+        <button onclick="logout()">Wyloguj</button>
+    </header>
+
+    <main>
+        <h2>Dodaj swoją kartę</h2>
+        <div class="card-container">
+            <img src="Don.png" alt="Karta One Piece">
+            <input type="text" id="cardName" placeholder="Nazwa karty">
+            <button onclick="addCard()">Dodaj kartę</button>
+        </div>
+
+        <h2>Twoje karty</h2>
+        <ul id="cardList"></ul>
+    </main>
+
+    <footer>
+        <p>© 2025 Moja Aplikacja PWA</p>
+    </footer>
+
+    <script>
+        function checkLogin() {
+            if (!localStorage.getItem("loggedIn")) {
+                window.location.href = "index.html";
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem("loggedIn");
+            window.location.href = "index.html";
+        }
+
+        function addCard() {
+            let cardName = document.getElementById("cardName").value;
+            if (cardName.trim() !== "") {
+                let li = document.createElement("li");
+                li.textContent = cardName;
+                document.getElementById("cardList").appendChild(li);
+                document.getElementById("cardName").value = "";
+            }
+        }
+
+        checkLogin();
+    </script>
+</body>
+</html>
