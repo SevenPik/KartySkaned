@@ -3,62 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Moja Aplikacja PWA - interaktywna aplikacja do nauki matematyki.">
-    <title>Moja Aplikacja PWA</title>
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" href="icon.jpg" type="image/jpeg">
-    <link rel="stylesheet" href="index.css">
+    <title>Rejestracja i Logowanie</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <header>
-        <h1>Witamy w naszej aplikacji</h1>
-        <button onclick="login()">Zaloguj przez Google</button>
-        <a href="register.html">Zarejestruj się</a>
-    </header>
-
-    <div class="Obrazki-slide">
-        <img class="mySlides" src="didd.jpg" style="width:100%">
-        <img class="mySlides" src="did.jpg" style="width:100%">
-        <img class="mySlides" src="diddy.jpg" style="width:100%">
-    </div>
-    
-    <script>
-        var myIndex = 0;
-        carousel();
-    
-        function carousel() {
-            var i;
-            var x = document.getElementsByClassName("mySlides");
-            for (i = 0; i < x.length; i++) {
-                x[i].style.display = "none";
-            }
-            myIndex++;
-            if (myIndex > x.length) {myIndex = 1}
-            x[myIndex - 1].style.display = "block";
-            setTimeout(carousel, 2500);
-        }
-
-        function login() {
-            // Symulacja logowania
-            localStorage.setItem("loggedIn", "true");
-            window.location.href = "dashboard.html";
-        }
-    </script>
-
-    <main>
-        <section>
-            <p>Interaktywna aplikacja do nauki matematyki. Sprawdź nasze narzędzia do ćwiczeń!</p>
-        </section>
-        <h2>Galeria kart One Piece</h2>
-        <div class="gallery">
-            <img src="card1.jpg" alt="One Piece Card">
-            <img src="card2.jpg" alt="One Piece Card">
-            <img src="card3.jpg" alt="One Piece Card">
+    <div class="container">
+        <!-- Rejestracja -->
+        <div class="form-container" id="register-container">
+            <h2>Rejestracja</h2>
+            <form id="register-form">
+                <div>
+                    <label for="register-email">Email:</label>
+                    <input type="email" id="register-email" required>
+                </div>
+                <div>
+                    <label for="register-password">Hasło:</label>
+                    <input type="password" id="register-password" required>
+                </div>
+                <div>
+                    <label for="register-display-name">Nazwa wyświetlana:</label>
+                    <input type="text" id="register-display-name" required>
+                </div>
+                <button type="submit">Zarejestruj</button>
+            </form>
+            <p>Masz już konto? <a href="#" id="switch-to-login">Zaloguj się</a></p>
         </div>
-    </main>
 
-    <footer>
-        <p>© 2025 Moja Aplikacja PWA</p>
-    </footer>
+        <!-- Logowanie -->
+        <div class="form-container" id="login-container" style="display: none;">
+            <h2>Logowanie</h2>
+            <form id="login-form">
+                <div>
+                    <label for="login-email">Email:</label>
+                    <input type="email" id="login-email" required>
+                </div>
+                <div>
+                    <label for="login-password">Hasło:</label>
+                    <input type="password" id="login-password" required>
+                </div>
+                <button type="submit">Zaloguj</button>
+            </form>
+            <p>Nie masz konta? <a href="#" id="switch-to-register">Zarejestruj się</a></p>
+        </div>
+    </div>
+
+    <script>
+        // Wybór formularza (rejestracja/logowanie)
+        document.getElementById('switch-to-login').addEventListener('click', function() {
+            document.getElementById('register-container').style.display = 'none';
+            document.getElementById('login-container').style.display = 'block';
+        });
+
+        document.getElementById('switch-to-register').addEventListener('click', function() {
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('register-container').style.display = 'block';
+        });
+
+        // Obsługa rejestracji
+        document.getElementById('register-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const displayName = document.getElementById('register-display-name').value;
+
+            const response = await fetch('/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password, displayName })
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                alert(result.message);
+                // Zapisz token do sesji, jeśli trzeba (np. sessionStorage)
+                sessionStorage.setItem('auth-token', result.token);
+            } else {
+                alert(result.error);
+            }
+        });
+
+        // Obsługa logowania
+        document.getElementById('login-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                alert(result.message);
+                // Zapisz token do sesji
+                sessionStorage.setItem('auth-token', result.token);
+            } else {
+                alert(result.error);
+            }
+        });
+    </script>
 </body>
 </html>
