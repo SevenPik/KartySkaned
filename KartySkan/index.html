@@ -48,18 +48,16 @@
     </div>
 
     <script>
-        // Wybór formularza (rejestracja/logowanie)
-        document.getElementById('switch-to-login').addEventListener('click', function() {
+        document.getElementById('switch-to-login').addEventListener('click', () => {
             document.getElementById('register-container').style.display = 'none';
             document.getElementById('login-container').style.display = 'block';
         });
 
-        document.getElementById('switch-to-register').addEventListener('click', function() {
+        document.getElementById('switch-to-register').addEventListener('click', () => {
             document.getElementById('login-container').style.display = 'none';
             document.getElementById('register-container').style.display = 'block';
         });
 
-        // Obsługa rejestracji
         document.getElementById('register-form').addEventListener('submit', async function(event) {
             event.preventDefault();
             const email = document.getElementById('register-email').value;
@@ -68,23 +66,21 @@
 
             const response = await fetch('/register', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password, displayName })
             });
 
             const result = await response.json();
             if (response.ok) {
                 alert(result.message);
-                // Zapisz token do sesji, jeśli trzeba (np. sessionStorage)
-                sessionStorage.setItem('auth-token', result.token);
+                localStorage.setItem('auth-token', result.token);
+                localStorage.setItem('user', JSON.stringify(result.user));
+                window.location.href = '/mainpage.html';
             } else {
                 alert(result.error);
             }
         });
 
-        // Obsługa logowania
         document.getElementById('login-form').addEventListener('submit', async function(event) {
             event.preventDefault();
             const email = document.getElementById('login-email').value;
@@ -92,17 +88,16 @@
 
             const response = await fetch('/login', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
             });
 
             const result = await response.json();
             if (response.ok) {
                 alert(result.message);
-                // Zapisz token do sesji
-                sessionStorage.setItem('auth-token', result.token);
+                localStorage.setItem('auth-token', result.token);
+                localStorage.setItem('user', JSON.stringify(result.user));
+                window.location.href = '/mainpage.html';
             } else {
                 alert(result.error);
             }

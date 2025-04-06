@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KartyScan – Twoja Kolekcja</title>
+  <link rel="stylesheet" href="index.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+  <header>
+    <h1>Twoja Kolekcja Kart</h1>
+
+    <div class="toggle-container">
+      <input type="checkbox" id="themeToggle" />
+      <label for="themeToggle"></label>
+    </div>
+
+    <button onclick="logout()">Wyloguj</button>
+  </header>
+
+  <main>
+    <div class="profile">
+      <img src="avatar.png" alt="Avatar użytkownika" />
+      <div>
+        <h3 id="welcomeMessage">Witaj, Karciarz!</h3>
+        <p>Masz już <strong>12</strong> kart w kolekcji</p>
+      </div>
+    </div>
+
+    <section>
+      <h2>Statystyki kolekcji</h2>
+      <ul id="stats">
+        <li>🔷 Rzadkie: 5</li>
+        <li>🔶 Epickie: 2</li>
+        <li>🟥 Legendarne: 1</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Dodaj nową kartę</h2>
+      <div class="card-container">
+        <img src="Don.png" alt="Karta One Piece" />
+        <input type="text" id="cardName" placeholder="Nazwa karty" />
+        <button onclick="openModal()">Dodaj kartę</button>
+      </div>
+    </section>
+
+    <div id="modal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <h3>Dodaj kartę</h3>
+        <input type="text" placeholder="Nazwa karty" />
+        <input type="text" placeholder="Rzadkość" />
+        <input type="text" placeholder="Opis" />
+        <button onclick="closeModal()">Zamknij</button>
+        <button>Dodaj do kolekcji</button>
+      </div>
+    </div>
+
+    <section>
+      <h2>Twoje karty</h2>
+      <ul id="cardList">
+        <li>Karta: Zoro (epicka)</li>
+        <li>Karta: Luffy (rzadka)</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Ulubione karty</h2>
+      <div class="card-container">
+        <img src="Zoro.png" alt="Zoro" />
+        <img src="Shanks.png" alt="Shanks" />
+        <img src="Ace.png" alt="Ace" />
+      </div>
+    </section>
+  </main>
+
+  <div class="navbar">
+    <button><i class="fas fa-home"></i>Home</button>
+    <button><i class="fas fa-plus-circle"></i>Dodaj</button>
+    <button><i class="fas fa-th-list"></i>Kolekcja</button>
+    <button><i class="fas fa-search"></i>Wyszukaj</button>
+    <button><i class="fas fa-user"></i>Profil</button>
+  </div>
+
+  <footer>
+    <p>© 2025 KartyScan App</p>
+  </footer>
+
+  <script>
+    const toggle = document.getElementById('themeToggle');
+    toggle.addEventListener('change', () => {
+      document.body.classList.toggle('dark-mode');
+    });
+
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user || !localStorage.getItem('auth-token')) {
+      alert("Musisz być zalogowany!");
+      window.location.href = '/';
+    } else {
+      document.getElementById('welcomeMessage').textContent = `Cześć, ${user.displayName}!`;
+    }
+
+    function logout() {
+      localStorage.removeItem('auth-token');
+      localStorage.removeItem('user');
+      alert("Wylogowano!");
+      window.location.href = '/';
+    }
+
+    function openModal() {
+      document.getElementById('modal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('modal').style.display = 'none';
+    }
+  </script>
+</body>
+</html>
