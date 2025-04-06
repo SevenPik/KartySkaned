@@ -4,8 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>KartyScan – Twoja Kolekcja</title>
-  <link rel="stylesheet" href="/mainpage.css"
-
+  <link rel="stylesheet" href="/mainpage.css" />
 </head>
 <body>
 
@@ -15,9 +14,8 @@
       <input type="checkbox" id="themeToggle" />
       <label for="themeToggle"></label>
     </div>
-    <button class="profil"></i>Profil</button>
+    <button class="profil">Profil</button>
     <button onclick="logout()">Wyloguj</button>
-    
   </header>
 
   <main>
@@ -52,7 +50,6 @@
     <button><i class="fas fa-plus-circle"></i>Dodaj</button>
     <button><i class="fas fa-th-list"></i>Kolekcja</button>
     <button><i class="fas fa-search"></i>Wyszukaj</button>
-
   </div>
 
   <footer>
@@ -75,6 +72,8 @@
       document.getElementById('welcomeMessage').textContent = `Cześć, ${user.displayName}!`;
     }
 
+    const userId = user._id || user.id;
+
     function logout() {
       localStorage.removeItem('auth-token');
       localStorage.removeItem('user');
@@ -94,7 +93,7 @@
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ name, rarity, description, image, count, userId: user._id })
+        body: JSON.stringify({ name, rarity, description, image, count, userId })
       });
 
       if (res.ok) {
@@ -106,24 +105,28 @@
     }
 
     async function loadCards() {
-      const res = await fetch(`/my-cards/${user._id}`);
+      const res = await fetch('/api/user-cards', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
       const cards = await res.json();
       const cardGrid = document.getElementById('cardGrid');
       cardGrid.innerHTML = '';
 
-      document.getElementById('cardCount').textContent = cards.length;
+      const totalCount = cards.reduce((sum, card) => sum + card.count, 0);
+      document.getElementById('cardCount').textContent = totalCount;
 
       cards.forEach(card => {
         const div = document.createElement('div');
         div.className = 'card';
 
         div.innerHTML = `
-          <img src="${card.image}" alt="${card.name}" />
+          <img src="${card.image || 'default.png'}" alt="${card.name}" />
           <h4>${card.name}</h4>
-          <p>${card.rarity}</p>
-          <p>${card.description}</p>
-          <label>Ilość:
-            <input type="number" value="${card.count}" min="0" onchange="updateCount('${card._id}', this.value)" />
+          <p>ID: ${card.cardId}</p>
+          <p>Ilość: ${card.count}</p>
+          <label>Zmień ilość:
+            <input type="number" value="${card.count}" min="0" onchange="updateCount('${card.cardId}', this.value)" />
           </label>
         `;
         cardGrid.appendChild(div);
@@ -134,7 +137,8 @@
       await fetch(`/update-card/${cardId}`, {
         method: 'PATCH',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ count: parseInt(newCount) })
       });
@@ -142,7 +146,5 @@
 
     window.onload = loadCards;
   </script>
-
- 
 </body>
 </html>

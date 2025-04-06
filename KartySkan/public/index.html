@@ -4,12 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rejestracja i Logowanie</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="index.css">
+    <style>
+        .form-container {
+          transition: transform 0.6s ease, opacity 0.6s ease;
+          opacity: 1;
+          transform: scale(1) rotateY(0deg);
+        }
+      
+        .form-container.hidden {
+          opacity: 0;
+          transform: scale(0.8) rotateY(90deg);
+          pointer-events: none;
+        }
+      
+        .form-container.show {
+          opacity: 1;
+          transform: scale(1.05) rotateY(0deg);
+          animation: pirate-entry 0.6s ease;
+        }
+      
+        @keyframes pirate-entry {
+          0% {
+            transform: scale(0.7) rotateY(-180deg);
+            opacity: 0;
+          }
+          50% {
+            transform: scale(1.1) rotateY(10deg);
+            opacity: 0.7;
+          }
+          100% {
+            transform: scale(1.0) rotateY(0deg);
+            opacity: 1;
+          }
+        }
+      </style>
 </head>
 <body>
     <div class="container">
         <!-- Rejestracja -->
-        <div class="form-container" id="register-container">
+        <div class="form-container show" id="register-container">
             <h2>Rejestracja</h2>
             <form id="register-form">
                 <div>
@@ -30,7 +64,7 @@
         </div>
 
         <!-- Logowanie -->
-        <div class="form-container" id="login-container" style="display: none;">
+        <div class="form-container hidden" id="login-container" style="display: none;">
             <h2>Logowanie</h2>
             <form id="login-form">
                 <div>
@@ -48,60 +82,86 @@
     </div>
 
     <script>
+          const registerContainer = document.getElementById('register-container');
+  const loginContainer = document.getElementById('login-container');
+
+  document.getElementById('switch-to-login').addEventListener('click', () => {
+    registerContainer.classList.remove('show');
+    registerContainer.classList.add('hidden');
+
+    setTimeout(() => {
+      registerContainer.style.display = 'none';
+      loginContainer.style.display = 'block';
+      loginContainer.classList.remove('hidden');
+      loginContainer.classList.add('show');
+    }, 300);
+  });
+
+  document.getElementById('switch-to-register').addEventListener('click', () => {
+    loginContainer.classList.remove('show');
+    loginContainer.classList.add('hidden');
+
+    setTimeout(() => {
+      loginContainer.style.display = 'none';
+      registerContainer.style.display = 'block';
+      registerContainer.classList.remove('hidden');
+      registerContainer.classList.add('show');
+    }, 300);
+  });
         document.getElementById('switch-to-login').addEventListener('click', () => {
             document.getElementById('register-container').style.display = 'none';
             document.getElementById('login-container').style.display = 'block';
         });
-
+    
         document.getElementById('switch-to-register').addEventListener('click', () => {
             document.getElementById('login-container').style.display = 'none';
             document.getElementById('register-container').style.display = 'block';
         });
-
+    
         document.getElementById('register-form').addEventListener('submit', async function(event) {
             event.preventDefault();
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
-            const displayName = document.getElementById('register-display-name').value;
-
-            const response = await fetch('/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password, displayName })
-            });
-
-            const result = await response.json();
-            if (response.ok) {
-                alert(result.message);
-                localStorage.setItem('auth-token', result.token);
-                localStorage.setItem('user', JSON.stringify(result.user));
-                window.location.href = '/mainpage.html';
-            } else {
-                alert(result.error);
-            }
-        });
-
-        document.getElementById('login-form').addEventListener('submit', async function(event) {
-            event.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-
-            const response = await fetch('/login', {
+    
+            const response = await fetch('/api/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
             });
-
+    
             const result = await response.json();
             if (response.ok) {
                 alert(result.message);
+                document.getElementById('register-form').reset();
+                document.getElementById('register-container').style.display = 'none';
+                document.getElementById('login-container').style.display = 'block';
+            } else {
+                alert(result.message);
+            }
+        });
+    
+        document.getElementById('login-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+    
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+    
+            const result = await response.json();
+            if (response.ok) {
+                alert("Zalogowano pomyślnie");
                 localStorage.setItem('auth-token', result.token);
                 localStorage.setItem('user', JSON.stringify(result.user));
                 window.location.href = '/mainpage.html';
             } else {
-                alert(result.error);
+                alert(result.message);
             }
         });
     </script>
+    
 </body>
 </html>

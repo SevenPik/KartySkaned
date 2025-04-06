@@ -4,9 +4,7 @@ const cardSchema = new mongoose.Schema({
   name: String,
   rarity: String,
   description: String,
-  image: String, // np. "zoro.png"
-  count: Number,
-  ownerId: String // id użytkownika
+  image: String
 });
 
 module.exports = mongoose.model('Card', cardSchema);
