@@ -4,9 +4,9 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const path = require('path');
+
 const User = require('./models/User');
 const Card = require('./models/Card');
-const UserCard = require('./models/UserCard');
 
 const app = express();
 app.use(express.json());
@@ -38,7 +38,7 @@ app.post('/api/register', async (req, res) => {
   const { email, password } = req.body;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ email, password: hashedPassword });
+    const user = new User({ email, password: hashedPassword, cards: [] });
     await user.save();
     res.status(201).json({ message: 'Użytkownik zarejestrowany' });
   } catch (err) {
@@ -62,57 +62,54 @@ app.post('/api/login', async (req, res) => {
 // Pobieranie kart użytkownika
 app.get('/api/user-cards', authenticateToken, async (req, res) => {
   try {
-    const userCards = await UserCard.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(req.user.id) } },
-      {
-        $lookup: {
-          from: 'cards',
-          localField: 'cardId',
-          foreignField: '_id',
-          as: 'cardData'
-        }
-      },
-      { $unwind: '$cardData' },
-      {
-        $project: {
-          _id: 0,
-          cardId: '$cardId',
-          count: '$count',
-          name: '$cardData.name',
-          image: '$cardData.image'
-        }
-      }
-    ]);
+    const user = await User.findById(req.user.id).lean();
+    if (!user || !user.cards) return res.json([]);
 
-    res.json(userCards);
+    const cids = user.cards.map(c => c.cid);
+    const allCards = await Card.find({ cid: { $in: cids } }).lean();
+
+    const mergedCards = user.cards.map(userCard => {
+      const cardData = allCards.find(c => c.cid === userCard.cid);
+      return {
+        cid: userCard.cid,
+        count: userCard.count,
+        name: cardData?.name || 'Nieznana karta',
+        power: cardData?.power,
+        cost: cardData?.cost,
+        counter: cardData?.counter,
+        type: cardData?.type,
+        effect: cardData?.effect,
+        effect_trigger: cardData?.effect_trigger,
+        rarity: cardData?.rarity,
+        edition: cardData?.edition,
+        image_url: cardData?.image_url
+      };
+    });
+
+    res.json(mergedCards);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Błąd pobierania kart użytkownika' });
   }
 });
 
-// Dodawanie nowej karty
+// Dodawanie nowej karty użytkownikowi
 app.post('/add-card', authenticateToken, async (req, res) => {
-  const { name, rarity, description, image, count, userId } = req.body;
+  const { cid, count } = req.body;
 
   try {
-    let card = await Card.findOne({ name });
+    const card = await Card.findOne({ cid });
+    if (!card) return res.status(404).json({ message: 'Nie znaleziono karty o podanym CID' });
 
-    if (!card) {
-      card = new Card({ name, rarity, description, image });
-      await card.save();
-    }
-
-    let userCard = await UserCard.findOne({ userId, cardId: card._id });
-
-    if (userCard) {
-      userCard.count += count;
+    const user = await User.findById(req.user.id);
+    const existing = user.cards.find(c => c.cid === cid);
+    if (existing) {
+      existing.count += count;
     } else {
-      userCard = new UserCard({ userId, cardId: card._id, count });
+      user.cards.push({ cid, count });
     }
 
-    await userCard.save();
-
+    await user.save();
     res.status(201).json({ message: 'Karta dodana' });
   } catch (err) {
     console.error(err);
@@ -120,28 +117,27 @@ app.post('/add-card', authenticateToken, async (req, res) => {
   }
 });
 
-// Aktualizacja ilości kart
-app.patch('/update-card/:id', authenticateToken, async (req, res) => {
+// Aktualizacja ilości kart użytkownika
+app.patch('/update-card/:cid', authenticateToken, async (req, res) => {
   const { count } = req.body;
-  const cardId = req.params.id;
+  const { cid } = req.params;
 
   try {
-    const result = await UserCard.findOneAndUpdate(
-      { userId: req.user.id, cardId },
-      { count },
-      { new: true }
-    );
+    const user = await User.findById(req.user.id);
+    const card = user.cards.find(c => c.cid === cid);
+    if (!card) return res.status(404).json({ message: 'Karta nie znaleziona' });
 
-    if (!result) return res.status(404).json({ message: 'Nie znaleziono karty użytkownika' });
+    card.count = count;
+    await user.save();
 
-    res.json({ message: 'Ilość zaktualizowana', card: result });
+    res.json({ message: 'Ilość zaktualizowana', cid, count });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Błąd aktualizacji' });
+    res.status(500).json({ message: 'Błąd aktualizacji ilości' });
   }
 });
 
-// Serwowanie index.html jako fallback
+// Serwowanie strony głównej
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'mainpage.html'));
 });

@@ -105,33 +105,39 @@
     }
 
     async function loadCards() {
-      const res = await fetch('/api/user-cards', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+  const res = await fetch('/api/user-cards', {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
 
-      const cards = await res.json();
-      const cardGrid = document.getElementById('cardGrid');
-      cardGrid.innerHTML = '';
+  const cards = await res.json(); // zakładamy, że to pełne dane z kolekcji "cards"
 
-      const totalCount = cards.reduce((sum, card) => sum + card.count, 0);
-      document.getElementById('cardCount').textContent = totalCount;
+  const cardGrid = document.getElementById('cardGrid');
+  cardGrid.innerHTML = '';
 
-      cards.forEach(card => {
-        const div = document.createElement('div');
-        div.className = 'card';
+  const totalCount = cards.reduce((sum, card) => sum + (card.count || 1), 0);
+  document.getElementById('cardCount').textContent = totalCount;
 
-        div.innerHTML = `
-          <img src="${card.image || 'default.png'}" alt="${card.name}" />
-          <h4>${card.name}</h4>
-          <p>ID: ${card.cardId}</p>
-          <p>Ilość: ${card.count}</p>
-          <label>Zmień ilość:
-            <input type="number" value="${card.count}" min="0" onchange="updateCount('${card.cardId}', this.value)" />
-          </label>
-        `;
-        cardGrid.appendChild(div);
-      });
-    }
+  cards.forEach(card => {
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.innerHTML = `
+      <img src="/images/${card.cid}_small.jpg" alt="${card.name}" />
+      <h4>${card.name}</h4>
+
+      <p><strong>ID:</strong> ${card.cid}</p>
+      <p><strong>Typ:</strong> ${card.type}</p>
+      <p><strong>Power:</strong> ${card.power}</p>
+      <p><strong>Koszt:</strong> ${card.cost}</p>
+      <p><strong>Counter:</strong> ${card.counter}</p>
+      <p><strong>Rzadkość:</strong> ${card.rarity}</p>
+      <p><strong>Efekt:</strong> ${card.effect_trigger ? `[${card.effect_trigger}] ` : ''}${card.effect || ''}</p>
+      <label>Zmień ilość:
+        <input type="number" value="${card.count || 1}" min="0" onchange="updateCount('${card.cid}', this.value)" />
+      </label>
+    `;
+    cardGrid.appendChild(div);
+  });
+}
 
     async function updateCount(cardId, newCount) {
       await fetch(`/update-card/${cardId}`, {
