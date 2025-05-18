@@ -32,7 +32,10 @@
       <div id="cardGrid" class="card-grid"></div>
     </section>
   </main>
-
+  <section>
+    <h2>Suma</h2>
+    
+  </section>
   <div class="navbar">
     <button><i class="fas fa-home"></i>Home</button>
     <button><i class="fas fa-plus-circle"></i>Dodaj</button>
@@ -117,28 +120,38 @@
     }
 
     // Dodana funkcja do ładowania ceny karty Choppera
-    async function loadChopperPrice() {
-      try {
-        const res = await fetch('/chopper_price.txt');
-        const price = await res.text();
+async function loadCardPrices() {
+    try {
+      const res = await fetch('/all_prices.json'); // lub './all_prices.json' jeśli lokalnie
+      const prices = await res.json();
 
-        document.querySelectorAll('.card').forEach(card => {
-          const name = card.querySelector('h4')?.textContent?.toLowerCase();
-          if (name && name.includes('chopper')) {
-            const priceElement = card.querySelector('#chopperPrice');
-            if (priceElement) {
-              priceElement.innerHTML = `<strong>Cena:</strong> ${price}`;
-            }
+      // Tworzymy mapę: nazwa karty (lowercase, bez spacji) → cena
+      const priceMap = {};
+      prices.forEach(p => {
+        const key = p.name.toLowerCase().replace(/\s+/g, '');
+        priceMap[key] = p.price;
+      });
+
+      // Dla każdej karty w DOM dopasuj i ustaw cenę
+      document.querySelectorAll('.card').forEach(cardEl => {
+        const cardName = cardEl.querySelector('h4')?.textContent?.toLowerCase().replace(/\s+/g, '');
+        const price = priceMap[cardName];
+
+        if (price) {
+          const priceElement = cardEl.querySelector('#chopperPrice');
+          if (priceElement) {
+            priceElement.innerHTML = `<strong>Cena:</strong> ${price}`;
           }
-        });
-      } catch (err) {
-        console.error("Błąd podczas ładowania ceny Choppera:", err);
-      }
+        }
+      });
+    } catch (err) {
+      console.error("Błąd podczas ładowania cen:", err);
     }
+  }
 
     window.onload = async () => {
       await loadCards();
-      await loadChopperPrice();
+      await loadCardPrices();
     };
   </script>
 </body>
