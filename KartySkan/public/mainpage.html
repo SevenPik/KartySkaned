@@ -28,18 +28,6 @@
     </div>
 
     <section>
-      <h2>Dodaj nową kartę</h2>
-      <div class="card-container">
-        <input type="text" id="cardName" placeholder="Nazwa karty" />
-        <input type="text" id="cardRarity" placeholder="Rzadkość (rzadka, epicka, legendarna)" />
-        <input type="text" id="cardDesc" placeholder="Opis karty" />
-        <input type="text" id="cardImage" placeholder="Nazwa pliku obrazka (np. zoro.png)" />
-        <input type="number" id="cardCountInput" placeholder="Liczba posiadanych kopii" />
-        <button onclick="addCard()">Dodaj kartę</button>
-      </div>
-    </section>
-
-    <section>
       <h2>Twoje karty</h2>
       <div id="cardGrid" class="card-grid"></div>
     </section>
@@ -81,64 +69,6 @@
       window.location.href = '/';
     }
 
-    async function addCard() {
-      const name = document.getElementById('cardName').value;
-      const rarity = document.getElementById('cardRarity').value;
-      const description = document.getElementById('cardDesc').value;
-      const image = document.getElementById('cardImage').value;
-      const count = parseInt(document.getElementById('cardCountInput').value);
-
-      const res = await fetch('/add-card', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ name, rarity, description, image, count, userId })
-      });
-
-      if (res.ok) {
-        alert('Karta dodana!');
-        loadCards();
-      } else {
-        alert('Błąd dodawania karty');
-      }
-    }
-
-    async function loadCards() {
-  const res = await fetch('/api/user-cards', {
-    headers: { 'Authorization': `Bearer ${token}` }
-  });
-
-  const cards = await res.json(); // zakładamy, że to pełne dane z kolekcji "cards"
-
-  const cardGrid = document.getElementById('cardGrid');
-  cardGrid.innerHTML = '';
-
-  const totalCount = cards.reduce((sum, card) => sum + (card.count || 1), 0);
-  document.getElementById('cardCount').textContent = totalCount;
-
-  cards.forEach(card => {
-    const div = document.createElement('div');
-    div.className = 'card';
-    div.innerHTML = `
-      <img src="/images/${card.cid}_small.jpg" alt="${card.name}" />
-      <h4>${card.name}</h4>
-
-      <p><strong>ID:</strong> ${card.cid}</p>
-      <p><strong>Typ:</strong> ${card.type}</p>
-      <p><strong>Power:</strong> ${card.power}</p>
-      <p><strong>Koszt:</strong> ${card.cost}</p>
-      <p><strong>Counter:</strong> ${card.counter}</p>
-      <p><strong>Rzadkość:</strong> ${card.rarity}</p>
-      <p><strong>Efekt:</strong> ${card.effect_trigger ? `[${card.effect_trigger}] ` : ''}${card.effect || ''}</p>
-      <label>Zmień ilość:
-        <input type="number" value="${card.count || 1}" min="0" onchange="updateCount('${card.cid}', this.value)" />
-      </label>
-    `;
-    cardGrid.appendChild(div);
-  });
-}
-
     async function updateCount(cardId, newCount) {
       await fetch(`/update-card/${cardId}`, {
         method: 'PATCH',
@@ -150,7 +80,66 @@
       });
     }
 
-    window.onload = loadCards;
+    async function loadCards() {
+      const res = await fetch('/api/user-cards', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      const cards = await res.json(); // zakładamy, że to pełne dane z kolekcji "cards"
+
+      const cardGrid = document.getElementById('cardGrid');
+      cardGrid.innerHTML = '';
+
+      const totalCount = cards.reduce((sum, card) => sum + (card.count || 1), 0);
+      document.getElementById('cardCount').textContent = totalCount;
+
+      cards.forEach(card => {
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+          <img src="/images/${card.cid}_small.jpg" alt="${card.name}" />
+          <h4>${card.name}</h4>
+
+          <p><strong>ID:</strong> ${card.cid}</p>
+          <p><strong>Typ:</strong> ${card.type}</p>
+          <p><strong>Power:</strong> ${card.power}</p>
+          <p><strong>Koszt:</strong> ${card.cost}</p>
+          <p><strong>Counter:</strong> ${card.counter}</p>
+          <p><strong>Rzadkość:</strong> ${card.rarity}</p>
+          <p><strong>Efekt:</strong> ${card.effect_trigger ? `[${card.effect_trigger}] ` : ''}${card.effect || ''}</p>
+          <p id="chopperPrice"><strong>Cena:</strong> pobieranie...</p>
+          <label>Zmień ilość:
+            <input type="number" value="${card.count || 1}" min="0" onchange="updateCount('${card.cid}', this.value)" />
+          </label>
+        `;
+        cardGrid.appendChild(div);
+      });
+    }
+
+    // Dodana funkcja do ładowania ceny karty Choppera
+    async function loadChopperPrice() {
+      try {
+        const res = await fetch('/chopper_price.txt');
+        const price = await res.text();
+
+        document.querySelectorAll('.card').forEach(card => {
+          const name = card.querySelector('h4')?.textContent?.toLowerCase();
+          if (name && name.includes('chopper')) {
+            const priceElement = card.querySelector('#chopperPrice');
+            if (priceElement) {
+              priceElement.innerHTML = `<strong>Cena:</strong> ${price}`;
+            }
+          }
+        });
+      } catch (err) {
+        console.error("Błąd podczas ładowania ceny Choppera:", err);
+      }
+    }
+
+    window.onload = async () => {
+      await loadCards();
+      await loadChopperPrice();
+    };
   </script>
 </body>
 </html>
