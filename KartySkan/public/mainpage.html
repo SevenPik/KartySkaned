@@ -32,10 +32,12 @@
       <div id="cardGrid" class="card-grid"></div>
     </section>
   </main>
+
   <section>
     <h2>Suma</h2>
-    
+    <p id="totalValue"><strong>Łączna wartość:</strong> obliczanie...</p>
   </section>
+
   <div class="navbar">
     <button><i class="fas fa-home"></i>Home</button>
     <button><i class="fas fa-plus-circle"></i>Dodaj</button>
@@ -88,8 +90,7 @@
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      const cards = await res.json(); // zakładamy, że to pełne dane z kolekcji "cards"
-
+      const cards = await res.json();
       const cardGrid = document.getElementById('cardGrid');
       cardGrid.innerHTML = '';
 
@@ -102,7 +103,6 @@
         div.innerHTML = `
           <img src="/images/${card.cid}_small.jpg" alt="${card.name}" />
           <h4>${card.name}</h4>
-
           <p><strong>ID:</strong> ${card.cid}</p>
           <p><strong>Typ:</strong> ${card.type}</p>
           <p><strong>Power:</strong> ${card.power}</p>
@@ -112,43 +112,50 @@
           <p><strong>Efekt:</strong> ${card.effect_trigger ? `[${card.effect_trigger}] ` : ''}${card.effect || ''}</p>
           <p id="chopperPrice"><strong>Cena:</strong> pobieranie...</p>
           <label>Zmień ilość:
-            <input type="number" value="${card.count || 1}" min="0" onchange="updateCount('${card.cid}', this.value)" />
+            <input type="number" value="${card.count || 1}" min="0" onchange="updateCount('${card.cid}', this.value).then(loadCardPrices)" />
           </label>
         `;
         cardGrid.appendChild(div);
       });
     }
 
-    // Dodana funkcja do ładowania ceny karty Choppera
 async function loadCardPrices() {
-    try {
-      const res = await fetch('/all_prices.json'); // lub './all_prices.json' jeśli lokalnie
-      const prices = await res.json();
+  try {
+    const res = await fetch('/all_prices.json');
+    const prices = await res.json();
 
-      // Tworzymy mapę: nazwa karty (lowercase, bez spacji) → cena
-      const priceMap = {};
-      prices.forEach(p => {
-        const key = p.name.toLowerCase().replace(/\s+/g, '');
-        priceMap[key] = p.price;
-      });
+    const priceMap = {};
+    prices.forEach(p => {
+      const key = p.name.toLowerCase().replace(/\s+/g, '');
+      priceMap[key] = p.price; // np. "$0.25"
+    });
 
-      // Dla każdej karty w DOM dopasuj i ustaw cenę
-      document.querySelectorAll('.card').forEach(cardEl => {
-        const cardName = cardEl.querySelector('h4')?.textContent?.toLowerCase().replace(/\s+/g, '');
-        const price = priceMap[cardName];
+    let totalValue = 0;
 
-        if (price) {
-          const priceElement = cardEl.querySelector('#chopperPrice');
-          if (priceElement) {
-            priceElement.innerHTML = `<strong>Cena:</strong> ${price}`;
-          }
+    document.querySelectorAll('.card').forEach(cardEl => {
+      const cardName = cardEl.querySelector('h4')?.textContent?.toLowerCase().replace(/\s+/g, '');
+      const countInput = cardEl.querySelector('input[type="number"]');
+      const count = parseInt(countInput?.value || '1', 10);
+      const priceStr = priceMap[cardName];
+
+      if (priceStr) {
+        const priceNumber = parseFloat(priceStr.replace('$', ''));
+        totalValue += priceNumber * count;
+
+        const priceElement = cardEl.querySelector('#chopperPrice');
+        if (priceElement) {
+          priceElement.innerHTML = `<strong>Cena:</strong> ${priceStr}`;
         }
-      });
-    } catch (err) {
-      console.error("Błąd podczas ładowania cen:", err);
-    }
-  }
+      }
+    });
 
+    const totalValueElement = document.getElementById('totalValue');
+    totalValueElement.innerHTML = `<strong>Łączna wartość:</strong> $${totalValue.toFixed(2)}`;
+  } catch (err) {
+    console.error("Błąd podczas ładowania cen:", err);
+    document.getElementById('totalValue').textContent = 'Błąd przy obliczaniu sumy.';
+  }
+}
     window.onload = async () => {
       await loadCards();
       await loadCardPrices();

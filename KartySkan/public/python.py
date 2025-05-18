@@ -17,8 +17,8 @@ cards = [
         "url": "https://www.tcgplayer.com/product/544523/one-piece-card-game-extra-booster-memorial-collection-kouzuki-oden?Language=English&page=1"
     },
     {
-        "name": "Nami",
-        "url": "https://www.tcgplayer.com/product/288230/one-piece-card-game-starter-deck-1-straw-hat-crew-nami?page=1&Language=English"
+        "name": "Cavendish",
+        "url": "https://www.tcgplayer.com/product/544538/one-piece-card-game-extra-booster-memorial-collection-cavendish?Language=English&page=1"
     },
     # Dodaj więcej...
 ]
