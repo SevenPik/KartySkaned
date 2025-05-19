@@ -2,14 +2,14 @@
   {
     "cid": "EB01-006",
     "name": "Tony Tony Chopper",
-    "price": "$24.37"
+    "price_cm": "12,50 €"
   },
   {
     "name": "Kouzuki Oden",
-    "price": "$0.55"
+    "price_cm": "Not found"
   },
   {
     "name": "Cavendish",
-    "price": "$33.75"
+    "price_cm": "Not found"
   }
 ]

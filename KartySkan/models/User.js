@@ -1,14 +1,22 @@
 const mongoose = require('mongoose');
 
-const UserSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  cards: [
-    {
-      cid: { type: String, required: true },
-      count: { type: Number, required: true, default: 1 }
-    }
-  ]
+const cardSchema = new mongoose.Schema({
+  cid: String,
+  count: Number
 });
 
-module.exports = mongoose.model('User', UserSchema);
+const priceEntrySchema = new mongoose.Schema({
+  totalValue: Number,
+  date: { type: Date, default: Date.now }
+});
+
+const userSchema = new mongoose.Schema({
+  email: String,
+  password: String,
+  displayName: String,
+  cards: [cardSchema],
+  priceHistory: [priceEntrySchema]
+});
+
+// TRZECI ARGUMENT "users" === NAZWA KOLEKCJI W ATLAS
+module.exports = mongoose.model('User', userSchema, 'users');

@@ -10,7 +10,7 @@ import json
 cards = [
     {
         "name": "Tony Tony Chopper",
-        "url": "https://www.tcgplayer.com/product/288235/one-piece-card-game-starter-deck-1-straw-hat-crew-tony-tonychopper?page=1&Language=English"
+        "url": "https://www.tcgplayer.com/product/544530/one-piece-card-game-extra-booster-memorial-collection-tony-tonychopper?page=1&Language=English"
     },
     {
         "name": "Kouzuki Oden",

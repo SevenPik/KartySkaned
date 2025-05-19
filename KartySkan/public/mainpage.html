@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>KartyScan – Twoja Kolekcja</title>
   <link rel="stylesheet" href="/mainpage.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -35,7 +36,10 @@
 
   <section>
     <h2>Suma</h2>
-    <p id="totalValue"><strong>Łączna wartość:</strong> obliczanie...</p>
+    <p id="totalValue"><strong>Łączna wartość (TCGPlayer):</strong> obliczanie...</p>
+    <p id="totalValueCm"><strong>Łączna wartość (Cardmarket):</strong> obliczanie...</p>
+    <h2>Wartość kolekcji – ostatnie 7 dni</h2>
+    <canvas id="valueChart" width="400" height="200"></canvas>
   </section>
 
   <div class="navbar">
@@ -110,55 +114,119 @@
           <p><strong>Counter:</strong> ${card.counter}</p>
           <p><strong>Rzadkość:</strong> ${card.rarity}</p>
           <p><strong>Efekt:</strong> ${card.effect_trigger ? `[${card.effect_trigger}] ` : ''}${card.effect || ''}</p>
-          <p id="chopperPrice"><strong>Cena:</strong> pobieranie...</p>
+          <p class="price-tcg"><strong>TCGPlayer:</strong> pobieranie...</p>
+          <p class="price-cm"><strong>Cardmarket:</strong> pobieranie...</p>
           <label>Zmień ilość:
-            <input type="number" value="${card.count || 1}" min="0" onchange="updateCount('${card.cid}', this.value).then(loadCardPrices)" />
+            <input type="number" value="${card.count ?? 1}" min="0"
+              onchange="updateCount('${card.cid}', this.value).then(loadCardPrices)" />
           </label>
         `;
         cardGrid.appendChild(div);
       });
     }
-
 async function loadCardPrices() {
   try {
-    const res = await fetch('/all_prices.json');
-    const prices = await res.json();
+    const [tcgRes, cmRes] = await Promise.all([
+      fetch('/all_prices.json'),
+      fetch('/all_prices_cardmarket.json')
+    ]);
 
-    const priceMap = {};
-    prices.forEach(p => {
-      const key = p.name.toLowerCase().replace(/\s+/g, '');
-      priceMap[key] = p.price; // np. "$0.25"
+    const tcgPrices = await tcgRes.json();
+    const cmPrices = await cmRes.json();
+
+    // Mapy po cid
+    const tcgMap = {};
+    const cmMap = {};
+
+    tcgPrices.forEach(p => {
+      if (p.cid) tcgMap[p.cid] = p.price;
+    });
+    cmPrices.forEach(p => {
+      if (p.cid) cmMap[p.cid] = p.price_cm;
     });
 
-    let totalValue = 0;
+    let totalTcg = 0;
+    let totalCm = 0;
 
     document.querySelectorAll('.card').forEach(cardEl => {
-      const cardName = cardEl.querySelector('h4')?.textContent?.toLowerCase().replace(/\s+/g, '');
+      const cid = cardEl.querySelector('p strong + text')?.textContent?.trim() || "";
       const countInput = cardEl.querySelector('input[type="number"]');
       const count = parseInt(countInput?.value || '1', 10);
-      const priceStr = priceMap[cardName];
 
-      if (priceStr) {
-        const priceNumber = parseFloat(priceStr.replace('$', ''));
-        totalValue += priceNumber * count;
+      // Alternatywnie: lepiej pobrać cid z DOM inaczej (patrz poniżej)
+      const idMatch = cardEl.innerHTML.match(/<strong>ID:<\/strong>\s*(EB01-\d{3})/);
+      const cardCid = idMatch ? idMatch[1] : null;
 
-        const priceElement = cardEl.querySelector('#chopperPrice');
-        if (priceElement) {
-          priceElement.innerHTML = `<strong>Cena:</strong> ${priceStr}`;
-        }
+      if (!cardCid) return;
+
+      // TCG
+      const priceTcg = tcgMap[cardCid];
+      if (priceTcg) {
+        const value = parseFloat(priceTcg.replace('$', '').replace(',', '.'));
+        totalTcg += value * count;
+        cardEl.querySelector('.price-tcg').innerHTML = `<strong>TCGPlayer:</strong> ${priceTcg}`;
+      }
+
+      // Cardmarket
+      const priceCm = cmMap[cardCid];
+      if (priceCm && priceCm.includes('€')) {
+        const value = parseFloat(priceCm.replace('€', '').replace(',', '.'));
+        totalCm += value * count;
+        cardEl.querySelector('.price-cm').innerHTML = `<strong>Cardmarket:</strong> ${priceCm}`;
       }
     });
 
-    const totalValueElement = document.getElementById('totalValue');
-    totalValueElement.innerHTML = `<strong>Łączna wartość:</strong> $${totalValue.toFixed(2)}`;
+    document.getElementById('totalValue').innerHTML =
+      `<strong>Łączna wartość (TCGPlayer):</strong> $${totalTcg.toFixed(2)}`;
+    document.getElementById('totalValueCm').innerHTML =
+      `<strong>Łączna wartość (Cardmarket):</strong> €${totalCm.toFixed(2)}`;
   } catch (err) {
     console.error("Błąd podczas ładowania cen:", err);
     document.getElementById('totalValue').textContent = 'Błąd przy obliczaniu sumy.';
+    document.getElementById('totalValueCm').textContent = 'Błąd przy obliczaniu sumy.';
   }
 }
+
+
+    async function loadValueChart() {
+      try {
+        const res = await fetch('/history.json');
+        const data = await res.json();
+
+        const labels = data.map(entry => entry.date);
+        const values = data.map(entry => entry.value);
+
+        const ctx = document.getElementById('valueChart').getContext('2d');
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Wartość kolekcji (USD)',
+              data: values,
+              borderColor: 'rgb(75, 192, 192)',
+              tension: 0.3,
+              fill: true,
+              backgroundColor: 'rgba(75, 192, 192, 0.1)'
+            }]
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: false
+              }
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Błąd ładowania wykresu:', error);
+      }
+    }
+
     window.onload = async () => {
       await loadCards();
       await loadCardPrices();
+      await loadValueChart();
     };
   </script>
 </body>
