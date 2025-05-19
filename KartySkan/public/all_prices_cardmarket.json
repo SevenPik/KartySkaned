@@ -1,15 +1,38 @@
 [
   {
-    "cid": "EB01-006",
+    "name": "Kozuki Hiyori",
+    "price_cm": "0,02 €"
+  },
+  {
+    "name": "Cavendish",
+    "price_cm": "16,00 €"
+  },
+  {
     "name": "Tony Tony Chopper",
     "price_cm": "12,50 €"
   },
   {
     "name": "Kouzuki Oden",
-    "price_cm": "Not found"
+    "price_cm": "0,02 €"
   },
   {
-    "name": "Cavendish",
-    "price_cm": "Not found"
+    "name": "Koza",
+    "price_cm": "0,02 €"
+  },
+  {
+    "name": "Blueno",
+    "price_cm": "0,02 €"
+  },
+  {
+    "name": "Hannyabal",
+    "price_cm": "0,02 €"
+  },
+  {
+    "name": "Edward Weevil",
+    "price_cm": "0,60 €"
+  },
+  {
+    "name": "Inazuma",
+    "price_cm": "0,10 €"
   }
 ]

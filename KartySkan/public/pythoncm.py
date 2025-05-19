@@ -8,18 +8,45 @@ import json
 
 # Lista kart: (nazwa, url Cardmarket)
 cards = [
-    {
-        "name": "Tony Tony Chopper",
-        "url": "https://www.cardmarket.com/en/OnePiece/Products/Singles/Memorial-Collection/Tony-TonyChopper-EB01-006-V1"
-    },
-    {
-        "name": "Kouzuki Oden",
-        "url": "https://www.cardmarket.com/en/OnePiece/Products/Singles/Memorial-Collection/Kouzuki-Oden-EB01-001"
-    },
-    {
-        "name": "Cavendish",
-        "url": "https://www.cardmarket.com/en/OnePiece/Products/Singles/Memorial-Collection/Cavendish-EB01-010"
-    },
+ 
+  {
+    "name": "Kozuki Hiyori",
+    "url": "https://www.cardmarket.com/en/OnePiece/Products/Singles/Memorial-Collection/Kouzuki-Hiyori-EB01-013-V1"
+  },
+  {
+    "name": "Cavendish",
+    "url": "https://www.cardmarket.com/en/OnePiece/Products/Singles/Memorial-Collection/Cavendish-EB01-012-V1"
+  },
+  {
+    "name": "Tony Tony Chopper",
+    "url": "https://www.cardmarket.com/en/OnePiece/Products/Singles/Memorial-Collection/Tony-TonyChopper-EB01-006-V1"
+  },
+  {
+    "name": "Kouzuki Oden",
+    "url": "https://www.cardmarket.com/en/OnePiece/Products/Singles/Memorial-Collection/Kouzuki-Oden-EB01-001-V1"
+  },
+  {
+    "name": "Koza",
+    "url": "https://www.cardmarket.com/en/OnePiece/Products/Singles/Memorial-Collection/Koza-EB01-004"
+  },
+  {
+    "name": "Blueno",
+    "url": "https://www.cardmarket.com/en/OnePiece/Products/Singles/Memorial-Collection/Blueno-EB01-017"
+  },
+  {
+    "name": "Hannyabal",
+    "url": "https://www.cardmarket.com/en/OnePiece/Products/Singles/Memorial-Collection/Hannyabal-EB01-021-V1"
+  },
+  {
+    "name": "Edward Weevil",
+    "url": "https://www.cardmarket.com/en/OnePiece/Products/Singles/Memorial-Collection/Edward-Weevil-EB01-023"
+  },
+  {
+    "name": "Inazuma",
+    "url": "https://www.cardmarket.com/en/OnePiece/Products/Singles/Memorial-Collection/Inazuma-EB01-022-V1"
+  }
+
+
     # Dodaj więcej kart według potrzeby
 ]
 
@@ -37,7 +64,7 @@ results = []
 for card in cards:
     try:
         driver.get(card["url"])
-        time.sleep(5)  # Poczekaj na załadowanie strony
+        time.sleep(1)  # Poczekaj na załadowanie strony
 
         # Szukamy pola "Lowest Price"
         dt_elements = driver.find_elements(By.TAG_NAME, "dt")
