@@ -4,13 +4,14 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const path = require('path');
-
+const loanRoutes = require('./routes/loan'); // <--- Dodane
 const User = require('./models/User');
 const Card = require('./models/Card');
 
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/api/loan', loanRoutes); // <--- Dodane
 
 // Połączenie z MongoDB
 mongoose.connect(process.env.MONGO_URI, {
@@ -33,7 +34,7 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// Rejestracja użytkownika
+// Rejestracja
 app.post('/api/register', async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -46,7 +47,7 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-// Logowanie użytkownika
+// Logowanie
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
@@ -59,7 +60,18 @@ app.post('/api/login', async (req, res) => {
   res.json({ token, user: { id: user._id, email, displayName: email.split('@')[0] } });
 });
 
-// Pobieranie kart użytkownika
+// Lista użytkowników
+app.get('/api/all-users', authenticateToken, async (req, res) => {
+  try {
+    const users = await User.find({}, 'displayName _id email').lean();
+    res.json(users);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Błąd pobierania użytkowników' });
+  }
+});
+
+// Karty użytkownika
 app.get('/api/user-cards', authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).lean();
@@ -93,7 +105,7 @@ app.get('/api/user-cards', authenticateToken, async (req, res) => {
   }
 });
 
-// Dodawanie nowej karty użytkownikowi
+// Dodawanie nowej karty
 app.post('/add-card', authenticateToken, async (req, res) => {
   const { cid, count } = req.body;
 
@@ -117,7 +129,7 @@ app.post('/add-card', authenticateToken, async (req, res) => {
   }
 });
 
-// Aktualizacja ilości kart użytkownika
+// Aktualizacja ilości kart
 app.patch('/update-card/:cid', authenticateToken, async (req, res) => {
   const { count } = req.body;
   const { cid } = req.params;
@@ -137,11 +149,11 @@ app.patch('/update-card/:cid', authenticateToken, async (req, res) => {
   }
 });
 
-// Serwowanie strony głównej
+// Strona główna
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'mainpage.html'));
 });
 
-// Start serwera
+// Start
 const PORT = process.env.PORT || 5051;
 app.listen(PORT, () => console.log(`Serwer działa na porcie ${PORT}`));

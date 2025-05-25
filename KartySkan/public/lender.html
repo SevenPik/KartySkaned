@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pożyczarka</title>
+  <link rel="stylesheet" href="/lender.css" />
+  <script src="https://unpkg.com/cytoscape@3.23.0/dist/cytoscape.min.js"></script>
+</head>
+<body>
+  <h1>Pożyczarka</h1>
+  <div id="cy"></div>
+  <div class="error" id="errorMsg"></div>
+
+  <!-- Modal do wyboru kart -->
+  <div id="loanModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <h2>Wybierz karty do pożyczenia</h2>
+      <div id="cardList"></div>
+      <button id="confirmLoan">Zapisz połączenie</button>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const token = localStorage.getItem('token');
+      const errorMsg = document.getElementById('errorMsg');
+
+      if (!token) {
+        errorMsg.textContent = 'Brak tokenu autoryzacyjnego. Zaloguj się ponownie.';
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/all-users', {
+          headers: { Authorization: 'Bearer ' + token }
+        });
+
+        if (!response.ok) throw new Error('Błąd autoryzacji lub pobierania danych.');
+
+        const users = await response.json();
+        const elements = users.map(user => ({
+          data: {
+            id: user._id,
+            label: user.displayName || user.email
+          }
+        }));
+
+        const cy = cytoscape({
+          container: document.getElementById('cy'),
+          elements,
+          style: [
+            {
+              selector: 'node',
+              style: {
+                'label': 'data(label)',
+                'text-valign': 'center',
+                'color': '#000',
+                'background-color': '#7abaff',
+                'border-width': 2,
+                'border-color': '#555',
+                'text-wrap': 'wrap',
+                'text-max-width': 80,
+                'font-size': '12px',
+                'width': 50,
+                'height': 50
+              }
+            },
+            {
+              selector: 'edge',
+              style: {
+                'width': 2,
+                'line-color': '#ccc'
+              }
+            }
+          ],
+          layout: {
+            name: 'grid'
+          }
+        });
+
+        let fromId = null;
+        let toId = null;
+
+        cy.on('tap', 'node', async (evt) => {
+          const clickedId = evt.target.id();
+
+          if (!fromId) {
+            fromId = clickedId;
+          } else if (clickedId !== fromId) {
+            toId = clickedId;
+
+            // Wyświetl modal
+            const modal = document.getElementById('loanModal');
+            const cardList = document.getElementById('cardList');
+            modal.style.display = 'block';
+
+            // Przykładowa lista kart do wyboru
+            const sampleCards = ['Karta A', 'Karta B', 'Karta C'];
+            cardList.innerHTML = sampleCards.map(card =>
+              `<label><input type="checkbox" value="${card}" /> ${card}</label><br>`
+            ).join('');
+
+            const confirmLoan = document.getElementById('confirmLoan');
+            confirmLoan.onclick = async () => {
+              const selectedCards = Array.from(cardList.querySelectorAll('input:checked'))
+                .map(checkbox => checkbox.value);
+
+              if (!selectedCards.length) {
+                alert('Wybierz co najmniej jedną kartę.');
+                return;
+              }
+
+              try {
+                const response = await fetch('/api/loan', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                  },
+                  body: JSON.stringify({
+                    from: fromId,
+                    to: toId,
+                    cards: selectedCards
+                  })
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                  alert('Połączenie zapisane!');
+                  cy.add({ data: { source: fromId, target: toId } });
+                } else {
+                  alert('Błąd: ' + result.message);
+                }
+              } catch (err) {
+                console.error(err);
+                alert('Wystąpił błąd podczas zapisu.');
+              }
+
+              modal.style.display = 'none';
+              fromId = null;
+              toId = null;
+            };
+          }
+        });
+
+      } catch (err) {
+        console.error(err);
+        errorMsg.textContent = 'Wystąpił błąd podczas wczytywania mapy.';
+      }
+    });
+  </script>
+</body>
+</html>
