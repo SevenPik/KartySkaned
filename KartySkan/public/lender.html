@@ -6,11 +6,83 @@
   <title>Pożyczarka</title>
   <link rel="stylesheet" href="/lender.css" />
   <script src="https://unpkg.com/cytoscape@3.23.0/dist/cytoscape.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+  <style>
+    #cy {
+      width: 100%;
+      height: 500px;
+      border: 1px solid #ccc;
+      margin-bottom: 20px;
+    }
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+    }
+    .modal-content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 600px;
+    }
+    #cardList {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+    }
+    .card-item {
+      width: 100px;
+      text-align: center;
+    }
+    .card-item img {
+      width: 100px;
+      height: 140px;
+      object-fit: cover;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    #userConnections {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+      margin-top: 40px;
+    }
+    .connection-card {
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      background-color: #fafafa;
+    }
+    .connection-card h3 {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+    .connection-card .card-images {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+      gap: 6px;
+    }
+    .connection-card img {
+      width: 100%;
+      height: auto;
+      border: 1px solid #aaa;
+      border-radius: 4px;
+    }
+  </style>
 </head>
 <body>
   <h1>Pożyczarka</h1>
   <div id="cy"></div>
-  <div class="error" id="errorMsg"></div>
+  <div class="error" id="errorMsg" style="color: red;"></div>
 
   <!-- Modal do wyboru kart -->
   <div id="loanModal" class="modal" style="display: none;">
@@ -20,6 +92,9 @@
       <button id="confirmLoan">Zapisz połączenie</button>
     </div>
   </div>
+
+  <h2>Twoje połączenia</h2>
+  <div id="userConnections"></div>
 
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
@@ -31,8 +106,16 @@
         return;
       }
 
+      let currentUserId = null;
       try {
-        // Pobierz wszystkich użytkowników
+        const decoded = jwt_decode(token);
+        currentUserId = decoded.id;
+      } catch (err) {
+        errorMsg.textContent = 'Błąd dekodowania tokenu.';
+        return;
+      }
+
+      try {
         const response = await fetch('/api/all-users', {
           headers: { Authorization: 'Bearer ' + token }
         });
@@ -57,14 +140,14 @@
                 'label': 'data(label)',
                 'text-valign': 'center',
                 'color': '#000',
-                'background-color': '#7abaff',
+                'background-color': '#e3bc8d',
                 'border-width': 2,
                 'border-color': '#555',
                 'text-wrap': 'wrap',
                 'text-max-width': 80,
                 'font-size': '12px',
-                'width': 50,
-                'height': 50
+                'width': 100,
+                'height': 100
               }
             },
             {
@@ -81,49 +164,40 @@
           }
         });
 
-        // Pobierz połączenia
-        try {
-          const loanResponse = await fetch('/api/loan/connections', {
-            headers: { Authorization: 'Bearer ' + token }
+        // Połączenia
+        const loanResponse = await fetch('/api/loan/connections', {
+          headers: { Authorization: 'Bearer ' + token }
+        });
+
+        if (!loanResponse.ok) throw new Error('Nie udało się pobrać połączeń.');
+
+        const connections = await loanResponse.json();
+
+        connections.forEach(conn => {
+          [conn.from, conn.to].forEach(user => {
+            if (!cy.getElementById(user.id).length) {
+              cy.add({
+                data: {
+                  id: user.id,
+                  label: user.displayName || user.email
+                }
+              });
+            }
           });
 
-          if (!loanResponse.ok) throw new Error('Nie udało się pobrać połączeń.');
-
-          const connections = await loanResponse.json();
-          console.log('DANE Z API /api/loan/connections:', connections);
-
-          // Dodaj brakujące wierzchołki
-          connections.forEach(conn => {
-            [conn.from, conn.to].forEach(user => {
-              if (!cy.getElementById(user.id).length) {
-                cy.add({
-                  data: {
-                    id: user.id,
-                    label: user.displayName || user.email
-                  }
-                });
-              }
-            });
+          cy.add({
+            data: {
+              source: conn.from.id,
+              target: conn.to.id
+            }
           });
+        });
 
-          // Dodaj krawędzie
-          connections.forEach(conn => {
-            cy.add({
-              data: {
-                source: conn.from.id,
-                target: conn.to.id
-              }
-            });
-          });
+        cy.layout({ name: 'cose', animate: true }).run();
 
-          // Uruchom layout po dodaniu wszystkich elementów
-          cy.layout({ name: 'cose', animate: true }).run();
+        displayUserConnections(connections, currentUserId);
 
-        } catch (err) {
-          console.error('Błąd podczas pobierania połączeń:', err);
-        }
-
-        // Obsługa kliknięć – pożyczanie
+        // Obsługa kliknięć
         let fromId = null;
         let toId = null;
 
@@ -137,18 +211,39 @@
 
             const modal = document.getElementById('loanModal');
             const cardList = document.getElementById('cardList');
-            modal.style.display = 'block';
+            modal.style.display = 'flex';
+            cardList.innerHTML = '<p>Ładowanie kart...</p>';
 
-            // Przykładowe karty
-            const sampleCards = ['Karta A', 'Karta B', 'Karta C'];
-            cardList.innerHTML = sampleCards.map(card =>
-              `<label><input type="checkbox" value="${card}" /> ${card}</label><br>`
-            ).join('');
+            try {
+              const cardRes = await fetch('/api/cards', {
+                headers: { Authorization: 'Bearer ' + token }
+              });
 
-            const confirmLoan = document.getElementById('confirmLoan');
-            confirmLoan.onclick = async () => {
+              if (!cardRes.ok) throw new Error('Błąd podczas pobierania kart.');
+
+              const cards = await cardRes.json();
+
+              if (!cards.length) {
+                cardList.innerHTML = '<p>Brak dostępnych kart.</p>';
+              } else {
+                cardList.innerHTML = cards.map(card => `
+                  <div class="card-item">
+                    <input type="checkbox" id="card-${card.cid}" value="${card.cid}" />
+                    <label for="card-${card.cid}">
+                      <img src="/images/${card.cid}_small.jpg" alt="${card.name}" />
+                      <div>${card.name}</div>
+                    </label>
+                  </div>
+                `).join('');
+              }
+            } catch (err) {
+              console.error('Błąd ładowania kart:', err);
+              cardList.innerHTML = '<p>Nie udało się załadować kart.</p>';
+            }
+
+            document.getElementById('confirmLoan').onclick = async () => {
               const selectedCards = Array.from(cardList.querySelectorAll('input:checked'))
-                .map(checkbox => checkbox.value);
+                .map(cb => cb.value);
 
               if (!selectedCards.length) {
                 alert('Wybierz co najmniej jedną kartę.');
@@ -170,18 +265,15 @@
                 });
 
                 const result = await response.json();
+
                 if (response.ok) {
                   alert('Połączenie zapisane!');
-
-                  // Dodaj nową krawędź
                   cy.add({
                     data: {
                       source: fromId,
                       target: toId
                     }
                   });
-
-                  // Uruchom layout ponownie
                   cy.layout({ name: 'cose', animate: true }).run();
                 } else {
                   alert('Błąd: ' + result.message);
@@ -203,7 +295,38 @@
         errorMsg.textContent = 'Wystąpił błąd podczas wczytywania mapy.';
       }
     });
+
+    function displayUserConnections(connections, currentUserId) {
+      const container = document.getElementById('userConnections');
+      container.innerHTML = '';
+
+      const userConns = connections.filter(conn =>
+        conn.from.id === currentUserId || conn.to.id === currentUserId
+      );
+
+      if (!userConns.length) {
+        container.innerHTML = '<p>Brak połączeń.</p>';
+        return;
+      }
+
+      userConns.forEach(conn => {
+        const otherUser = conn.from.id === currentUserId ? conn.to : conn.from;
+        const cards = conn.cards;
+
+        const cardHTML = cards.map(cid => `
+          <img src="/images/${cid}_small.jpg" alt="Karta ${cid}" />
+        `).join('');
+
+        const connHTML = `
+          <div class="connection-card">
+            <h3>Połączono z: ${otherUser.displayName || otherUser.email}</h3>
+            <div class="card-images">${cardHTML}</div>
+          </div>
+        `;
+
+        container.insertAdjacentHTML('beforeend', connHTML);
+      });
+    }
   </script>
 </body>
 </html>
-`
