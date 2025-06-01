@@ -32,6 +32,7 @@
       }
 
       try {
+        // Pobieranie użytkowników
         const response = await fetch('/api/all-users', {
           headers: { Authorization: 'Bearer ' + token }
         });
@@ -75,9 +76,50 @@
             }
           ],
           layout: {
-            name: 'grid'
+  name: 'cose',
+  animate: false
+}
+
+        });
+
+// POBIERZ POŁĄCZENIA I DODAJ KRAWĘDZIE
+try {
+  const loanResponse = await fetch('/api/loan/connections', {
+    headers: { Authorization: 'Bearer ' + token }
+  });
+
+  if (!loanResponse.ok) throw new Error('Nie udało się pobrać połączeń.');
+
+  const connections = await loanResponse.json();
+console.log('DANE Z API /api/loan/connections:', connections);
+  // 🔧 Dodaj brakujące wierzchołki z połączeń
+  connections.forEach(conn => {
+    [conn.from, conn.to].forEach(user => {
+      if (!cy.getElementById(user.id).length) {
+        cy.add({
+          data: {
+            id: user.id,
+            label: user.displayName || user.email
           }
         });
+      }
+    });
+  });
+
+  // 🔧 Dodaj krawędzie
+  connections.forEach(conn => {
+    cy.add({
+      data: {
+        source: conn.from.id,
+        target: conn.to.id
+      }
+    });
+    cy.layout({ name: 'cose', animate: false }).run();
+  });
+
+} catch (err) {
+  console.error('Błąd podczas pobierania połączeń:', err);
+}
 
         let fromId = null;
         let toId = null;
@@ -90,12 +132,11 @@
           } else if (clickedId !== fromId) {
             toId = clickedId;
 
-            // Wyświetl modal
             const modal = document.getElementById('loanModal');
             const cardList = document.getElementById('cardList');
             modal.style.display = 'block';
 
-            // Przykładowa lista kart do wyboru
+            // Przykładowa lista kart
             const sampleCards = ['Karta A', 'Karta B', 'Karta C'];
             cardList.innerHTML = sampleCards.map(card =>
               `<label><input type="checkbox" value="${card}" /> ${card}</label><br>`
@@ -116,7 +157,7 @@
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    'Authorization': 'Bearer ' + token
                   },
                   body: JSON.stringify({
                     from: fromId,

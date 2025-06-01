@@ -51,21 +51,14 @@ router.post('/', authenticateToken, async (req, res) => {
   }
 });
 
-// GET /api/loan/connections - lista połączeń z udziałem zalogowanego użytkownika
+// GET /api/loan/connections - wszystkie połączenia (nie tylko zalogowanego użytkownika)
+// GET /api/loan/connections - ZWRACA WSZYSTKIE POŁĄCZENIA
 router.get('/connections', authenticateToken, async (req, res) => {
   try {
-    const userId = new mongoose.Types.ObjectId(req.user.id); // ✅ KONWERSJA
-
-    console.log('REQ.USER.ID (GET /api/loan/connections):', userId);
-
-    const loans = await Loan.find({
-      $or: [{ from: userId }, { to: userId }]
-    })
+    const loans = await Loan.find({})
       .populate('from', 'email displayName _id')
       .populate('to', 'email displayName _id')
       .lean();
-
-    console.log('ZNALEZIONE POŁĄCZENIA:', loans.length);
 
     const connections = loans.map(loan => ({
       from: {
@@ -88,5 +81,4 @@ router.get('/connections', authenticateToken, async (req, res) => {
     res.status(500).json({ message: 'Błąd pobierania połączeń' });
   }
 });
-
 module.exports = router;
