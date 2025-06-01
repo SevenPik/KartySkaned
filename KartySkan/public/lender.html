@@ -32,7 +32,7 @@
       }
 
       try {
-        // Pobieranie użytkowników
+        // Pobierz wszystkich użytkowników
         const response = await fetch('/api/all-users', {
           headers: { Authorization: 'Bearer ' + token }
         });
@@ -76,51 +76,54 @@
             }
           ],
           layout: {
-  name: 'cose',
-  animate: false
-}
-
-        });
-
-// POBIERZ POŁĄCZENIA I DODAJ KRAWĘDZIE
-try {
-  const loanResponse = await fetch('/api/loan/connections', {
-    headers: { Authorization: 'Bearer ' + token }
-  });
-
-  if (!loanResponse.ok) throw new Error('Nie udało się pobrać połączeń.');
-
-  const connections = await loanResponse.json();
-console.log('DANE Z API /api/loan/connections:', connections);
-  // 🔧 Dodaj brakujące wierzchołki z połączeń
-  connections.forEach(conn => {
-    [conn.from, conn.to].forEach(user => {
-      if (!cy.getElementById(user.id).length) {
-        cy.add({
-          data: {
-            id: user.id,
-            label: user.displayName || user.email
+            name: 'cose',
+            animate: false
           }
         });
-      }
-    });
-  });
 
-  // 🔧 Dodaj krawędzie
-  connections.forEach(conn => {
-    cy.add({
-      data: {
-        source: conn.from.id,
-        target: conn.to.id
-      }
-    });
-    cy.layout({ name: 'cose', animate: false }).run();
-  });
+        // Pobierz połączenia
+        try {
+          const loanResponse = await fetch('/api/loan/connections', {
+            headers: { Authorization: 'Bearer ' + token }
+          });
 
-} catch (err) {
-  console.error('Błąd podczas pobierania połączeń:', err);
-}
+          if (!loanResponse.ok) throw new Error('Nie udało się pobrać połączeń.');
 
+          const connections = await loanResponse.json();
+          console.log('DANE Z API /api/loan/connections:', connections);
+
+          // Dodaj brakujące wierzchołki
+          connections.forEach(conn => {
+            [conn.from, conn.to].forEach(user => {
+              if (!cy.getElementById(user.id).length) {
+                cy.add({
+                  data: {
+                    id: user.id,
+                    label: user.displayName || user.email
+                  }
+                });
+              }
+            });
+          });
+
+          // Dodaj krawędzie
+          connections.forEach(conn => {
+            cy.add({
+              data: {
+                source: conn.from.id,
+                target: conn.to.id
+              }
+            });
+          });
+
+          // Uruchom layout po dodaniu wszystkich elementów
+          cy.layout({ name: 'cose', animate: true }).run();
+
+        } catch (err) {
+          console.error('Błąd podczas pobierania połączeń:', err);
+        }
+
+        // Obsługa kliknięć – pożyczanie
         let fromId = null;
         let toId = null;
 
@@ -136,7 +139,7 @@ console.log('DANE Z API /api/loan/connections:', connections);
             const cardList = document.getElementById('cardList');
             modal.style.display = 'block';
 
-            // Przykładowa lista kart
+            // Przykładowe karty
             const sampleCards = ['Karta A', 'Karta B', 'Karta C'];
             cardList.innerHTML = sampleCards.map(card =>
               `<label><input type="checkbox" value="${card}" /> ${card}</label><br>`
@@ -169,7 +172,17 @@ console.log('DANE Z API /api/loan/connections:', connections);
                 const result = await response.json();
                 if (response.ok) {
                   alert('Połączenie zapisane!');
-                  cy.add({ data: { source: fromId, target: toId } });
+
+                  // Dodaj nową krawędź
+                  cy.add({
+                    data: {
+                      source: fromId,
+                      target: toId
+                    }
+                  });
+
+                  // Uruchom layout ponownie
+                  cy.layout({ name: 'cose', animate: true }).run();
                 } else {
                   alert('Błąd: ' + result.message);
                 }
@@ -193,3 +206,4 @@ console.log('DANE Z API /api/loan/connections:', connections);
   </script>
 </body>
 </html>
+`
