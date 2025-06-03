@@ -1,143 +1,48 @@
+#cy {
+  width: 100%;
+  height: 600px;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
 
-  /* Reset i ogólne */
-  body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #f9f9f9, #e0f7fa);
-    color: #333;
-    line-height: 1.6;
-  }
+/* Modal tło */
+.modal {
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.5);
+}
 
-  h1, h2 {
-    text-align: center;
-    color: #333;
-    margin-top: 30px;
-    margin-bottom: 10px;
-  }
+/* Modal zawartość */
+.modal-content {
+  background-color: #fefefe;
+  margin: 10% auto;
+  padding: 20px;
+  border-radius: 8px;
+  width: 300px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
 
-  #cy {
-    width: 90%;
-    height: 500px;
-    margin: 30px auto;
-    border-radius: 16px;
-    background: #ffffffcc;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-  }
+#cardList label {
+  display: block;
+  margin-bottom: 5px;
+}
 
-  .modal {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background-color: rgba(0,0,0,0.6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  }
+#confirmLoan {
+  margin-top: 10px;
+  padding: 5px 10px;
+  border: none;
+  background-color: #4caf50;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
 
-  .modal-content {
-    background: rgba(255, 255, 255, 0.95);
-    padding: 30px;
-    border-radius: 16px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-    width: 90%;
-    max-width: 700px;
-    animation: fadeIn 0.3s ease-in-out;
-  }
-
-  #cardList {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    max-height: 300px;
-    overflow-y: auto;
-    margin: 20px 0;
-  }
-
-  .card-item {
-    width: 100px;
-    text-align: center;
-    transition: transform 0.2s ease;
-  }
-
-  .card-item:hover {
-    transform: scale(1.05);
-  }
-
-  .card-item img {
-    width: 100px;
-    height: 140px;
-    object-fit: cover;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    transition: transform 0.3s;
-  }
-
-  #confirmLoan {
-    display: block;
-    width: 100%;
-    padding: 12px;
-    background-color: #26a69a;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-
-  #confirmLoan:hover {
-    background-color: #00796b;
-  }
-
-  #userConnections {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 20px;
-    margin: 40px auto;
-    width: 90%;
-  }
-
-  .connection-card {
-    background: #ffffff;
-    padding: 15px;
-    border-radius: 12px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-    transition: transform 0.2s ease;
-  }
-
-  .connection-card:hover {
-    transform: translateY(-5px);
-  }
-
-  .connection-card h3 {
-    margin-top: 0;
-    font-size: 18px;
-    color: #00796b;
-  }
-
-  .card-images {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-    gap: 10px;
-    margin-top: 10px;
-  }
-
-  .card-images img {
-    width: 100%;
-    border-radius: 6px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  }
-
-  .error {
-    color: #d32f2f;
-    text-align: center;
-    margin-top: 20px;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-  }
+#confirmLoan:hover {
+  background-color: #45a049;
+}
