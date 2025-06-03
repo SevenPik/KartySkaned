@@ -71,6 +71,15 @@ app.get('/api/all-users', authenticateToken, async (req, res) => {
   }
 });
 
+app.get('/api/cards', authenticateToken, async (req, res) => {
+  try {
+    const cards = await Card.find({}, 'cid name').lean(); // tylko potrzebne dane
+    res.json(cards);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Błąd pobierania kart' });
+  }
+});
 // Karty użytkownika
 app.get('/api/user-cards', authenticateToken, async (req, res) => {
   try {
