@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Profil użytkownika</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="shortcut icon" href="logo.png" type="image/png">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+    
+    :root {
+      --bg-light: #f9f9fb;
+      --bg-dark: #1a1a2e;
+      --text-light: #222;
+      --text-dark: #f1f1f1;
+      --accent: #1e90ff;
+      --glass: rgba(255, 255, 255, 0.05);
+      --border-glass: rgba(255, 255, 255, 0.15);
+      --shadow-glass: rgba(0, 0, 0, 0.2);
+      --transition: all 0.3s ease;
+    }
+    
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-dark);
+      transition: var(--transition);
+    }
+    
+    header {
+      background: linear-gradient(135deg, #111827, #1f2937);
+      color: white;
+      padding: 20px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    
+    header h1 {
+      font-size: 26px;
+      margin: 0;
+    }
+    
+    header a {
+      color: #fff;
+      margin-right: 20px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+    
+    header a:hover {
+      color: var(--accent);
+    }
+    
+    header button {
+      background-color: #ff4e4e;
+      border: none;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: var(--transition);
+    }
+    
+    header button:hover {
+      background-color: #ff2f2f;
+      transform: scale(1.05);
+    }
+    
+    .profile-wrapper {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    
+    .profile-card {
+      display: flex;
+      align-items: center;
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px var(--shadow-glass);
+      animation: fadeIn 0.5s ease;
+      border: 1px solid var(--border-glass);
+    }
+    
+    .avatar-frame {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 4px solid var(--accent);
+      margin-right: 25px;
+      box-shadow: 0 0 12px rgba(30, 144, 255, 0.5);
+    }
+    
+    .avatar-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .user-info h2 {
+      margin: 0 0 5px 0;
+      color: var(--accent);
+    }
+    
+    .user-info p {
+      margin: 6px 0;
+      color: var(--text-dark);
+    }
+    
+    .edit-btn {
+      margin-top: 12px;
+      padding: 10px 16px;
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: var(--transition);
+      font-weight: 600;
+    }
+    
+    .edit-btn:hover {
+      background-color: #187bdb;
+      transform: scale(1.05);
+    }
+    
+    .stats-section,
+    .activity-section {
+      margin-top: 40px;
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 20px var(--shadow-glass);
+      border: 1px solid var(--border-glass);
+    }
+    
+    .stats-section h2,
+    .activity-section h2 {
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px;
+    }
+    
+    .stat-box {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-glass);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+      transition: var(--transition);
+    }
+    
+    .stat-box:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(30, 144, 255, 0.3);
+    }
+    
+    .stat-box h3 {
+      margin-bottom: 10px;
+      color: var(--accent);
+    }
+    
+    .stat-box p {
+      font-size: 18px;
+      font-weight: bold;
+      color: #fff;
+    }
+    
+    .activity-log {
+      list-style: none;
+      padding-left: 0;
+      margin-top: 15px;
+    }
+    
+    .activity-log li {
+      padding: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      color: #ddd;
+    }
+    
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 14px;
+      color: #777;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    </style>
+    
+</head>
+
+<body>
+
+  <header>
+    <h1>👤 Profil użytkownika</h1>
+    <div>
+      <a href="mainpage.html">🏠 Strona główna</a>
+      <button onclick="logout()">🚪 Wyloguj</button>
+    </div>
+  </header>
+
+  <main class="profile-wrapper">
+    <section class="profile-card">
+      <div class="avatar-frame">
+        <img src="avatar.png" alt="Avatar użytkownika" />
+      </div>
+      <div class="user-info">
+        <h2 id="userName">Imię Użytkownika</h2>
+        <p><i class="fas fa-envelope"></i> <span id="userEmail">adres@email.com</span></p>
+        <p><i class="fas fa-calendar-alt"></i> Dołączył: <span id="joinDate">--</span></p>
+        <button class="edit-btn" onclick="editProfile()"><i class="fas fa-user-edit"></i> Edytuj profil</button>
+      </div>
+    </section>
+
+    <section class="stats-section">
+      <h2>📊 Statystyki kolekcji</h2>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <h3>📦 Karty</h3>
+          <p id="statTotalCards">0</p>
+        </div>
+        <div class="stat-box">
+          <h3>💎 Najdroższa karta</h3>
+          <p id="statMostValuable">Ładowanie...</p>
+        </div>
+        <div class="stat-box">
+          <h3>💰 Wartość</h3>
+          <p id="statValue">---</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="activity-section">
+      <h2>🕒 Ostatnie aktywności</h2>
+      <ul id="activityLog" class="activity-log">
+        <li>Ładowanie danych...</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2025 KartyScan App</p>
+  </footer>
+
+  <script>
+    async function logout() {
+      localStorage.removeItem('auth-token');
+      localStorage.removeItem('user');
+      alert("Wylogowano!");
+      window.location.href = '/';
+    }
+
+    function editProfile() {
+      alert("Funkcja edycji w przygotowaniu.");
+    }
+
+    async function getMostValuableCard() {
+      try {
+        const response = await fetch('all_prices_cardmarket.json');
+        const data = await response.json();
+
+        let maxPrice = 0;
+        let cardName = 'Brak danych';
+
+        data.forEach(card => {
+          const priceStr = card.price_cm.replace('€', '').replace(',', '.').trim();
+          const price = parseFloat(priceStr);
+          if (price > maxPrice) {
+            maxPrice = price;
+            cardName = `${card.name} (${card.price_cm})`;
+          }
+        });
+
+        return cardName;
+      } catch (err) {
+        return 'Błąd ładowania';
+      }
+    }
+
+    window.onload = async () => {
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (!user) {
+        alert("Musisz być zalogowany!");
+        window.location.href = '/';
+        return;
+      }
+
+      document.getElementById('userName').textContent = user.displayName || 'Nieznany';
+      document.getElementById('userEmail').textContent = user.email || 'brak danych';
+      document.getElementById('joinDate').textContent = user.joinDate || 'brak danych';
+
+      document.getElementById('statTotalCards').textContent = '152';
+      document.getElementById('statValue').textContent = '1234.56 €';
+      document.getElementById('statMostValuable').textContent = await getMostValuableCard();
+
+      const log = document.getElementById('activityLog');
+      log.innerHTML = '';
+      const activities = [
+        'Dodano kartę: Dark Magician',
+        'Zmieniono ilość: Red-Eyes B. Dragon',
+        'Zaktualizowano profil',
+        'Zalogowano się z nowego urządzenia'
+      ];
+
+      activities.forEach(entry => {
+        const li = document.createElement('li');
+        li.textContent = entry;
+        log.appendChild(li);
+      });
+    };
+  </script>
+</body>
+</html>

@@ -6,6 +6,7 @@
   <title>KartyScan – Twoja Kolekcja</title>
   <link rel="stylesheet" href="/mainpage.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="shortcut icon" href="logo.png" type="image/png">
 </head>
 <body>
 
@@ -15,7 +16,7 @@
       <input type="checkbox" id="themeToggle" />
       <label for="themeToggle"></label>
     </div>
-    <button class="profil">Profil</button>
+    <a class="profil" href="profil.html">Profil</a>
     <button onclick="logout()">Wyloguj</button>
   </header>
 
@@ -108,84 +109,83 @@
         div.innerHTML = `
           <img src="/images/${card.cid}_small.jpg" alt="${card.name}" />
           <h4>${card.name}</h4>
-          <p><strong>ID:</strong> ${card.cid}</p>
-          <p><strong>Typ:</strong> ${card.type}</p>
-          <p><strong>Power:</strong> ${card.power}</p>
-          <p><strong>Koszt:</strong> ${card.cost}</p>
-          <p><strong>Counter:</strong> ${card.counter}</p>
-          <p><strong>Rzadkość:</strong> ${card.rarity}</p>
-          <p><strong>Efekt:</strong> ${card.effect_trigger ? `[${card.effect_trigger}] ` : ''}${card.effect || ''}</p>
-          <p class="price-tcg"><strong>TCGPlayer:</strong> pobieranie...</p>
-          <p class="price-cm"><strong>Cardmarket:</strong> pobieranie...</p>
-          <label>Zmień ilość:
-            <input type="number" value="${card.count ?? 1}" min="0"
-              onchange="updateCount('${card.cid}', this.value).then(loadCardPrices)" />
-          </label>
+          <div class="card-summary">
+            <p><strong>ID:</strong> ${card.cid}</p>
+            <p><strong>Typ:</strong> ${card.type}</p>
+            <p><strong>Power:</strong> ${card.power}</p>
+            <p><strong>Koszt:</strong> ${card.cost}</p>
+            <p><strong>Counter:</strong> ${card.counter}</p>
+            <p><strong>Rzadkość:</strong> ${card.rarity}</p>
+            <p class="price-tcg"><strong>TCGPlayer:</strong> pobieranie...</p>
+            <p class="price-cm"><strong>Cardmarket:</strong> pobieranie...</p>
+            <label>Zmień ilość:
+              <input type="number" value="${card.count ?? 1}" min="0"
+                onchange="updateCount('${card.cid}', this.value).then(loadCardPrices)" />
+            </label>
+          </div>
+          <div class="card-details hidden">
+            <p><strong>Efekt:</strong> ${card.effect_trigger ? `[${card.effect_trigger}] ` : ''}${card.effect || ''}</p>
+          </div>
         `;
+        div.addEventListener('click', () => {
+          div.querySelector('.card-details').classList.toggle('hidden');
+        });
         cardGrid.appendChild(div);
       });
     }
-async function loadCardPrices() {
-  try {
-    const [tcgRes, cmRes] = await Promise.all([
-      fetch('/all_prices.json'),
-      fetch('/all_prices_cardmarket.json')
-    ]);
 
-    const tcgPrices = await tcgRes.json();
-    const cmPrices = await cmRes.json();
+    async function loadCardPrices() {
+      try {
+        const [tcgRes, cmRes] = await Promise.all([
+          fetch('/all_prices.json'),
+          fetch('/all_prices_cardmarket.json')
+        ]);
 
-    // Funkcja do normalizacji nazw
-    const normalize = str => str.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/gi, '');
+        const tcgPrices = await tcgRes.json();
+        const cmPrices = await cmRes.json();
 
-    const tcgMap = {};
-    const cmMap = {};
+        const normalize = str => str.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/gi, '');
 
-    tcgPrices.forEach(p => {
-      if (p.name) tcgMap[normalize(p.name)] = p.price;
-    });
-    cmPrices.forEach(p => {
-      if (p.name) cmMap[normalize(p.name)] = p.price_cm;
-    });
+        const tcgMap = {}, cmMap = {};
 
-    let totalTcg = 0;
-    let totalCm = 0;
+        tcgPrices.forEach(p => {
+          if (p.name) tcgMap[normalize(p.name)] = p.price;
+        });
+        cmPrices.forEach(p => {
+          if (p.name) cmMap[normalize(p.name)] = p.price_cm;
+        });
 
-    document.querySelectorAll('.card').forEach(cardEl => {
-      const name = cardEl.querySelector('h4')?.textContent || '';
-      const key = normalize(name);
-      const countInput = cardEl.querySelector('input[type="number"]');
-      const count = parseInt(countInput?.value || '1', 10);
+        let totalTcg = 0, totalCm = 0;
 
-      // TCG
-      const priceTcg = tcgMap[key];
-      if (priceTcg) {
-        const value = parseFloat(priceTcg.replace('$', '').replace(',', '.'));
-        totalTcg += value * count;
-        cardEl.querySelector('.price-tcg').innerHTML = `<strong>TCGPlayer:</strong> ${priceTcg}`;
+        document.querySelectorAll('.card').forEach(cardEl => {
+          const name = cardEl.querySelector('h4')?.textContent || '';
+          const key = normalize(name);
+          const countInput = cardEl.querySelector('input[type="number"]');
+          const count = parseInt(countInput?.value || '1', 10);
+
+          const priceTcg = tcgMap[key];
+          if (priceTcg) {
+            const value = parseFloat(priceTcg.replace('$', '').replace(',', '.'));
+            totalTcg += value * count;
+            cardEl.querySelector('.price-tcg').innerHTML = `<strong>TCGPlayer:</strong> ${priceTcg}`;
+          }
+
+          const priceCm = cmMap[key];
+          if (priceCm && priceCm.includes('€')) {
+            const value = parseFloat(priceCm.replace('€', '').replace(',', '.'));
+            totalCm += value * count;
+            cardEl.querySelector('.price-cm').innerHTML = `<strong>Cardmarket:</strong> ${priceCm}`;
+          }
+        });
+
+        document.getElementById('totalValue').innerHTML = `<strong>Łączna wartość (TCGPlayer):</strong> $${totalTcg.toFixed(2)}`;
+        document.getElementById('totalValueCm').innerHTML = `<strong>Łączna wartość (Cardmarket):</strong> €${totalCm.toFixed(2)}`;
+      } catch (err) {
+        console.error("Błąd podczas ładowania cen:", err);
+        document.getElementById('totalValue').textContent = 'Błąd przy obliczaniu sumy.';
+        document.getElementById('totalValueCm').textContent = 'Błąd przy obliczaniu sumy.';
       }
-
-      // Cardmarket
-      const priceCm = cmMap[key];
-      if (priceCm && priceCm.includes('€')) {
-        const value = parseFloat(priceCm.replace('€', '').replace(',', '.'));
-        totalCm += value * count;
-        cardEl.querySelector('.price-cm').innerHTML = `<strong>Cardmarket:</strong> ${priceCm}`;
-      }
-    });
-
-    document.getElementById('totalValue').innerHTML =
-      `<strong>Łączna wartość (TCGPlayer):</strong> $${totalTcg.toFixed(2)}`;
-    document.getElementById('totalValueCm').innerHTML =
-      `<strong>Łączna wartość (Cardmarket):</strong> €${totalCm.toFixed(2)}`;
-  } catch (err) {
-    console.error("Błąd podczas ładowania cen:", err);
-    document.getElementById('totalValue').textContent = 'Błąd przy obliczaniu sumy.';
-    document.getElementById('totalValueCm').textContent = 'Błąd przy obliczaniu sumy.';
-  }
-}
-
-
+    }
 
     async function loadValueChart() {
       try {
@@ -228,5 +228,23 @@ async function loadCardPrices() {
       await loadValueChart();
     };
   </script>
+
+  <style>
+    .card .card-details.hidden {
+      display: none;
+    }
+
+    .card {
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .card-details {
+      margin-top: 10px;
+      background-color: #f9f9f9;
+      padding: 5px;
+      border-top: 1px solid #ddd;
+    }
+  </style>
 </body>
 </html>
